@@ -73,6 +73,12 @@ class WLEDPlugin(
         self.send_message("lights", {"on": False})
         self.lights_on = False
 
+    def toggle_lights(self) -> None:
+        if not self.lights_on:
+            self.activate_lights()
+        else:
+            self.deactivate_lights()
+
     # Gcode tracking hook
     def process_gcode_queue(
         self,
@@ -197,6 +203,8 @@ class WLEDPlugin(
             self.activate_lights()
         elif parameters == constants.AT_PARAM_OFF:
             self.deactivate_lights()
+        elif parameters == constants.AT_PARAM_TOGGLE:
+            self.toggle_lights()
 
     # SimpleApiPlugin
     def get_api_commands(self) -> Dict[str, List[Optional[str]]]:
