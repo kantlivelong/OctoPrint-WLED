@@ -8,7 +8,7 @@ from typing import Any, Optional
 import octoprint_wled
 from octoprint_wled.constants import KILL_MESSAGE
 from octoprint_wled.util import start_thread
-from octoprint_wled.wled import WLEDError
+from octoprint_wled.wled import WLEDError, WLEDConnectionError
 
 # Effects are put into the queue like this:
 # {"target": WLED, "args": (tuple of args), "kwargs": {dict of kwargs}}
@@ -25,8 +25,21 @@ class WLEDRunner:
 
     def runner_thread(self):
         while True:
-            message = self.queue.get(block=True)
-            if message == KILL_MESSAGE:
+            try:
+                message = self.queue.get(block=True, timeout=1)
+            except queue.Empty:
+                message = None
+
+            if not message:
+                try:
+                    response = self.wled_call(self.plugin.wled.update, block=True, suppress_exceptions=False)
+                except WLEDConnectionError:
+                    pass
+                else:
+                    self.plugin.lights_on = response.state.on
+                    self.plugin.send_message("lights", {"on": self.plugin.lights_on})
+                continue
+            elif message == KILL_MESSAGE:
                 # We are done, return, goodbye, have a nice day
                 return
 

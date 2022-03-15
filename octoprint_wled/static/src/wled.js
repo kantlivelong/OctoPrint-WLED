@@ -270,6 +270,8 @@ $(function () {
         self.fromGetResponse(data.content)
       } else if (data.type === 'api_post_test') {
         self.fromTestResponse(data.content)
+      } else if (data.type === 'lights') {
+        self.lights_on(data.content.on)
       }
     }
 
